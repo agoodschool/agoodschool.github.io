@@ -120,42 +120,43 @@ body {
     z-index: 2;
     text-align: center;
     width: 90%;
-    max-height: 300px;
-    overflow: hidden;
+    max-height: 70%; /* 增加可视区域 */
+    overflow-y: auto; /* 始终启用垂直滚动 */
     transition: all 0.3s ease;
     padding: 10px;
+    -webkit-overflow-scrolling: touch; /* 在iOS上支持惯性滚动 */
+    position: relative;
+    touch-action: pan-y; /* 支持触摸滑动 */
 }
 
 .lyrics-display .lyric-line {
     margin: 10px 0;
     transition: all 0.3s ease;
     cursor: pointer;
-    opacity: 0.9;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: calc(12px + (100vw - 320px) * 0.01);
     max-font-size: 18px;
     color: white;
-    background-color: #1a237e; /* 深蓝色背景 */
+    background-color: rgba(26, 35, 126, 0.5); /* 深蓝色背景，50%透明度 */
     padding: 8px 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    user-select: none; /* 防止文字被选中 */
 }
 
 .lyrics-display .lyric-line:hover {
-    opacity: 1;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    background-color: rgba(26, 35, 126, 0.6); /* 悬停时稍微不透明 */
 }
 
 .lyrics-display .lyric-line.active {
     font-size: calc((12px + (100vw - 320px) * 0.01) * 1.5);
     max-font-size: 27px;
-    background-color: #004d40; /* 深绿色背景 */
+    background-color: rgba(0, 77, 64, 0.5); /* 深绿色背景，50%透明度 */
     color: white;
-    opacity: 1;
     font-weight: bold;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 .lyrics-placeholder {
@@ -291,17 +292,30 @@ body {
 }
 
 /* 自定义滚动条样式 */
-.lyrics-display.scrollable::-webkit-scrollbar {
-    width: 6px;
+.lyrics-display::-webkit-scrollbar {
+    width: 4px;
 }
 
-.lyrics-display.scrollable::-webkit-scrollbar-track {
+.lyrics-display::-webkit-scrollbar-track {
     background: rgba(255,255,255,0.1);
+    border-radius: 2px;
 }
 
-.lyrics-display.scrollable::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.3);
-    border-radius: 3px;
+.lyrics-display::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+}
+
+/* 添加滚动指示器 */
+.lyrics-display::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 20px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.1));
+    pointer-events: none;
 }
 
 /* 媒体查询，针对不同设备调整 */

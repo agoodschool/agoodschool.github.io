@@ -174,28 +174,57 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!isRecording) {
             try {
-                // 获取屏幕流和系统音频
-                const screenStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: {
-                        cursor: 'never',
-                        displaySurface: 'monitor'
-                    },
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 44100,
-                        suppressLocalAudioPlayback: false
-                    }
-                });
+                let screenStream;
+                
+                // 检测是否为移动设备
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                
+                if (isMobile) {
+                    // 移动设备录屏设置
+                    screenStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: {
+                            cursor: 'never',
+                            displaySurface: 'browser',
+                            width: { ideal: window.innerWidth },
+                            height: { ideal: window.innerHeight },
+                            frameRate: { ideal: 30 }
+                        },
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100
+                        }
+                    });
+                } else {
+                    // 桌面设备录屏设置
+                    screenStream = await navigator.mediaDevices.getDisplayMedia({
+                        video: {
+                            cursor: 'never',
+                            displaySurface: 'monitor'
+                        },
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100,
+                            suppressLocalAudioPlayback: false
+                        }
+                    });
+                }
 
-                // 获取麦克风音频流
-                const micStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        sampleRate: 44100
-                    }
-                });
+                // 尝试获取麦克风权限
+                let micStream;
+                try {
+                    micStream = await navigator.mediaDevices.getUserMedia({
+                        audio: {
+                            echoCancellation: true,
+                            noiseSuppression: true,
+                            sampleRate: 44100
+                        }
+                    });
+                } catch (micErr) {
+                    console.warn("无法获取麦克风权限:", micErr);
+                    // 继续录制，但只有系统声音
+                }
 
                 // 合并音频轨道
                 const audioContext = new AudioContext();
@@ -207,9 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     systemSource.connect(destination);
                 }
                 
-                // 添加麦克风音频
-                const micSource = audioContext.createMediaStreamSource(micStream);
-                micSource.connect(destination);
+                // 添加麦克风音频（如果有）
+                if (micStream) {
+                    const micSource = audioContext.createMediaStreamSource(micStream);
+                    micSource.connect(destination);
+                }
 
                 const tracks = [
                     ...screenStream.getVideoTracks(),
@@ -217,8 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 ];
                 const combinedStream = new MediaStream(tracks);
 
+                // 使用兼容的编码格式
+                const mimeType = 'video/webm;codecs=h264,opus';
+                
                 mediaRecorder = new MediaRecorder(combinedStream, {
-                    mimeType: 'video/webm'
+                    mimeType: MediaRecorder.isTypeSupported(mimeType) ? mimeType : 'video/webm'
                 });
                 
                 mediaRecorder.ondataavailable = (event) => {
@@ -264,8 +298,24 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 };
                 
+                // 添加错误处理
+                screenStream.oninactive = () => {
+                    if (isRecording) {
+                        mediaRecorder.stop();
+                        isRecording = false;
+                        recordBtn.textContent = '录';
+                        recordBtn.classList.remove('recording');
+                    }
+                };
+
+                // 添加移动设备的提示
+                if (isMobile) {
+                    alert('请选择"整个屏幕"以获得最佳录制效果');
+                }
+
             } catch (err) {
-                console.error("Error: " + err);
+                console.error("录屏错误:", err);
+                alert('无法启动录屏，请确保已授予必要权限');
                 isRecording = false;
                 recordBtn.textContent = '录';
                 recordBtn.classList.remove('recording');

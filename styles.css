@@ -120,13 +120,14 @@ body {
     z-index: 2;
     text-align: center;
     width: 90%;
-    max-height: 70%; /* 增加可视区域 */
-    overflow-y: auto; /* 始终启用垂直滚动 */
+    max-height: 70%;
+    overflow-y: auto;
     transition: all 0.3s ease;
     padding: 10px;
-    -webkit-overflow-scrolling: touch; /* 在iOS上支持惯性滚动 */
+    -webkit-overflow-scrolling: touch;
     position: relative;
-    touch-action: pan-y; /* 支持触摸滑动 */
+    touch-action: pan-y;
+    scroll-behavior: smooth; /* 添加平滑滚动 */
 }
 
 .lyrics-display .lyric-line {
@@ -139,24 +140,26 @@ body {
     font-size: calc(12px + (100vw - 320px) * 0.01);
     max-font-size: 18px;
     color: white;
-    background-color: rgba(26, 35, 126, 0.9); /* 深蓝色背景，90%透明度 */
+    background-color: rgba(26, 35, 126, 0.45); /* 降低透明度到45% */
     padding: 8px 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    user-select: none; /* 防止文字被选中 */
+    user-select: none;
 }
 
 .lyrics-display .lyric-line:hover {
-    background-color: rgba(26, 35, 126, 0.95); /* 悬停时更不透明 */
+    background-color: rgba(26, 35, 126, 0.5); /* 悬停时稍微不透明 */
+    transform: translateY(-2px); /* 添加悬停效果 */
 }
 
 .lyrics-display .lyric-line.active {
     font-size: calc((12px + (100vw - 320px) * 0.01) * 1.5);
     max-font-size: 27px;
-    background-color: rgba(0, 77, 64, 0.9); /* 深绿色背景，90%透明度 */
+    background-color: rgba(0, 77, 64, 0.45); /* 降低透明度到45% */
     color: white;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transform: scale(1.02); /* 添加轻微放大效果 */
 }
 
 .lyrics-placeholder {

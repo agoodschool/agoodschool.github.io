@@ -140,7 +140,7 @@ body {
     font-size: calc(12px + (100vw - 320px) * 0.01);
     max-font-size: 18px;
     color: white;
-    background-color: rgba(26, 35, 126, 0.45); /* 降低透明度到45% */
+    background-color: rgba(26, 35, 126, 0.3); /* 增加透明度到70% */
     padding: 8px 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -148,24 +148,24 @@ body {
 }
 
 .lyrics-display .lyric-line:hover {
-    background-color: rgba(26, 35, 126, 0.5); /* 悬停时稍微不透明 */
-    transform: translateY(-2px); /* 添加悬停效果 */
+    background-color: rgba(26, 35, 126, 0.35); /* 悬停时稍微不透明 */
+    transform: translateY(-2px);
 }
 
 .lyrics-display .lyric-line.active {
     font-size: calc((12px + (100vw - 320px) * 0.01) * 1.5);
     max-font-size: 27px;
-    background-color: rgba(0, 77, 64, 0.45); /* 降低透明度到45% */
+    background-color: rgba(0, 77, 64, 0.3); /* 增加透明度到70% */
     color: white;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    transform: scale(1.02); /* 添加轻微放大效果 */
+    transform: scale(1.02);
 }
 
 .lyrics-placeholder {
     color: white;
     opacity: 0.8;
-    background-color: #1a237e;
+    background-color: rgba(26, 35, 126, 0.3); /* 占位符也增加透明度 */
     padding: 8px 15px;
     border-radius: 5px;
 }

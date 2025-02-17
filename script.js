@@ -170,30 +170,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 录屏功能
     recordBtn.addEventListener('click', async () => {
-        const card = document.querySelector('.card');
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
         
         if (!isRecording) {
             try {
-                let screenStream;
-                
-                // 检测是否为移动设备
-                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                
                 if (isMobile) {
-                    // 移动设备录屏设置
-                    screenStream = await navigator.mediaDevices.getDisplayMedia({
-                        video: {
-                            cursor: 'never',
-                            displaySurface: 'browser',
-                            width: { ideal: window.innerWidth },
-                            height: { ideal: window.innerHeight },
-                            frameRate: { ideal: 30 }
-                        },
-                        audio: {
-                            echoCancellation: true,
-                            noiseSuppression: true,
-                            sampleRate: 44100
+                    // 显示录屏指导弹窗
+                    const guideModal = document.createElement('div');
+                    guideModal.className = 'guide-modal';
+                    guideModal.innerHTML = `
+                        <div class="guide-content">
+                            <h3>录屏指南</h3>
+                            ${isIOS ? `
+                                <p>1. 从屏幕顶部下滑打开控制中心</p>
+                                <p>2. 点击录屏按钮开始录制</p>
+                                <p>3. 等待3秒倒计时后开始录制</p>
+                                <p>4. 完成后点击状态栏红色按钮停止录制</p>
+                            ` : `
+                                <p>1. 从屏幕顶部下滑打开快捷设置</p>
+                                <p>2. 找到"录屏"或"屏幕录制"按钮</p>
+                                <p>3. 点击开始录制</p>
+                                <p>4. 录制完成后从顶部下滑点击停止</p>
+                            `}
+                            <div class="guide-buttons">
+                                <button class="start-record">开始录制</button>
+                                <button class="cancel-record">取消</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(guideModal);
+
+                    // 添加按钮事件
+                    const startBtn = guideModal.querySelector('.start-record');
+                    const cancelBtn = guideModal.querySelector('.cancel-record');
+                    
+                    startBtn.addEventListener('click', () => {
+                        guideModal.remove();
+                        // 尝试调用系统录屏
+                        if (isIOS) {
+                            alert('请从屏幕顶部下滑打开控制中心，点击录屏按钮开始录制');
+                        } else {
+                            alert('请从屏幕顶部下滑打开快捷设置，找到"录屏"按钮开始录制');
                         }
+                    });
+                    
+                    cancelBtn.addEventListener('click', () => {
+                        guideModal.remove();
                     });
                 } else {
                     // 桌面设备录屏设置
@@ -209,116 +232,107 @@ document.addEventListener('DOMContentLoaded', () => {
                             suppressLocalAudioPlayback: false
                         }
                     });
-                }
 
-                // 尝试获取麦克风权限
-                let micStream;
-                try {
-                    micStream = await navigator.mediaDevices.getUserMedia({
-                        audio: {
-                            echoCancellation: true,
-                            noiseSuppression: true,
-                            sampleRate: 44100
+                    // 尝试获取麦克风权限
+                    let micStream;
+                    try {
+                        micStream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                sampleRate: 44100
+                            }
+                        });
+                    } catch (micErr) {
+                        console.warn("无法获取麦克风权限:", micErr);
+                        // 继续录制，但只有系统声音
+                    }
+
+                    // 合并音频轨道
+                    const audioContext = new AudioContext();
+                    const destination = audioContext.createMediaStreamDestination();
+                    
+                    // 添加系统音频
+                    if (screenStream.getAudioTracks().length > 0) {
+                        const systemSource = audioContext.createMediaStreamSource(screenStream);
+                        systemSource.connect(destination);
+                    }
+                    
+                    // 添加麦克风音频（如果有）
+                    if (micStream) {
+                        const micSource = audioContext.createMediaStreamSource(micStream);
+                        micSource.connect(destination);
+                    }
+
+                    const tracks = [
+                        ...screenStream.getVideoTracks(),
+                        ...destination.stream.getAudioTracks()
+                    ];
+                    const combinedStream = new MediaStream(tracks);
+
+                    // 使用兼容的编码格式
+                    const mimeType = 'video/webm;codecs=h264,opus';
+                    
+                    mediaRecorder = new MediaRecorder(combinedStream, {
+                        mimeType: MediaRecorder.isTypeSupported(mimeType) ? mimeType : 'video/webm'
+                    });
+                    
+                    mediaRecorder.ondataavailable = (event) => {
+                        if (event.data.size > 0) {
+                            recordedChunks.push(event.data);
                         }
-                    });
-                } catch (micErr) {
-                    console.warn("无法获取麦克风权限:", micErr);
-                    // 继续录制，但只有系统声音
-                }
-
-                // 合并音频轨道
-                const audioContext = new AudioContext();
-                const destination = audioContext.createMediaStreamDestination();
-                
-                // 添加系统音频
-                if (screenStream.getAudioTracks().length > 0) {
-                    const systemSource = audioContext.createMediaStreamSource(screenStream);
-                    systemSource.connect(destination);
-                }
-                
-                // 添加麦克风音频（如果有）
-                if (micStream) {
-                    const micSource = audioContext.createMediaStreamSource(micStream);
-                    micSource.connect(destination);
-                }
-
-                const tracks = [
-                    ...screenStream.getVideoTracks(),
-                    ...destination.stream.getAudioTracks()
-                ];
-                const combinedStream = new MediaStream(tracks);
-
-                // 使用兼容的编码格式
-                const mimeType = 'video/webm;codecs=h264,opus';
-                
-                mediaRecorder = new MediaRecorder(combinedStream, {
-                    mimeType: MediaRecorder.isTypeSupported(mimeType) ? mimeType : 'video/webm'
-                });
-                
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        recordedChunks.push(event.data);
-                    }
-                };
-                
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(recordedChunks, {
-                        type: 'video/webm'
-                    });
-                    recordedChunks = [];
+                    };
                     
-                    // 保存到本地存储
-                    const videoUrl = URL.createObjectURL(blob);
-                    recordedVideos.push({
-                        url: videoUrl,
-                        timestamp: new Date().toLocaleString()
-                    });
+                    mediaRecorder.onstop = () => {
+                        const blob = new Blob(recordedChunks, {
+                            type: 'video/webm'
+                        });
+                        recordedChunks = [];
+                        
+                        // 保存到本地存储
+                        const videoUrl = URL.createObjectURL(blob);
+                        recordedVideos.push({
+                            url: videoUrl,
+                            timestamp: new Date().toLocaleString()
+                        });
+                        
+                        // 显示回放界面
+                        const video = document.getElementById('playback-video');
+                        video.src = videoUrl;
+                        playbackContainer.style.display = 'block';
+                        
+                        // 清理
+                        tracks.forEach(track => track.stop());
+                        audioContext.close();
+                    };
                     
-                    // 显示回放界面
-                    const video = document.getElementById('playback-video');
-                    video.src = videoUrl;
-                    playbackContainer.style.display = 'block';
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.textContent = '';
+                    recordBtn.classList.add('recording');
                     
-                    // 清理
-                    tracks.forEach(track => track.stop());
-                    audioContext.close();
-                };
-                
-                mediaRecorder.start();
-                isRecording = true;
-                recordBtn.textContent = '';
-                recordBtn.classList.add('recording');
-                
-                screenStream.getVideoTracks()[0].onended = () => {
-                    if (isRecording) {
-                        mediaRecorder.stop();
-                        isRecording = false;
-                        recordBtn.textContent = '录';
-                        recordBtn.classList.remove('recording');
-                    }
-                };
-                
-                // 添加错误处理
-                screenStream.oninactive = () => {
-                    if (isRecording) {
-                        mediaRecorder.stop();
-                        isRecording = false;
-                        recordBtn.textContent = '录';
-                        recordBtn.classList.remove('recording');
-                    }
-                };
-
-                // 添加移动设备的提示
-                if (isMobile) {
-                    alert('请选择"整个屏幕"以获得最佳录制效果');
+                    screenStream.getVideoTracks()[0].onended = () => {
+                        if (isRecording) {
+                            mediaRecorder.stop();
+                            isRecording = false;
+                            recordBtn.textContent = '录';
+                            recordBtn.classList.remove('recording');
+                        }
+                    };
+                    
+                    // 添加错误处理
+                    screenStream.oninactive = () => {
+                        if (isRecording) {
+                            mediaRecorder.stop();
+                            isRecording = false;
+                            recordBtn.textContent = '录';
+                            recordBtn.classList.remove('recording');
+                        }
+                    };
                 }
-
             } catch (err) {
                 console.error("录屏错误:", err);
-                alert('无法启动录屏，请确保已授予必要权限');
-                isRecording = false;
-                recordBtn.textContent = '录';
-                recordBtn.classList.remove('recording');
+                alert('无法启动录屏，请尝试使用系统自带的录屏功能');
             }
         } else {
             mediaRecorder.stop();

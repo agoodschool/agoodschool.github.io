@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const submitLyricsBtn = document.getElementById('submit-lyrics');
     const cancelLyricsBtn = document.getElementById('cancel-lyrics');
     const cardTitle = document.querySelector('.card-title');
+    const wordWo = cardTitle.querySelector('.word-wo');
+    const wordWang = cardTitle.querySelector('.word-wang');
+    const wordWangEnd = cardTitle.querySelector('.word-wang-end');
 
     // 音频相关元素
     const audioElement = document.getElementById('song-audio');
@@ -60,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             audioElement.src = audioURL;
             
             // 更新卡片标题为音频文件名
-            cardTitle.textContent = `勿忘我试唱 - ${file.name}`;
+            wordWangEnd.textContent = `我 - ${file.name}`;
             
             // 显示音频控制器
             audioControls.style.display = 'flex';

@@ -53,8 +53,39 @@ body {
 }
 
 .card-title {
+    position: relative;
+    font-size: 0; /* 隐藏原始文字 */
+    display: inline-block;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.card-title span {
     font-size: 18px;
-    font-weight: bold;
+    display: inline-block;
+    margin: 0 2px;
+    transition: all 0.3s ease;
+}
+
+.card-title .word-wo {
+    color: #ff6b6b; /* 红色 */
+    transform: rotate(-5deg);
+}
+
+.card-title .word-wang {
+    color: #4ecdc4; /* 绿色 */
+    transform: rotate(0deg);
+}
+
+.card-title .word-wang-end {
+    color: #3498db; /* 蓝色 */
+    transform: rotate(5deg);
+}
+
+.card-title:hover span {
+    transform: translateY(-5px);
 }
 
 .add-btn {

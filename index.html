@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勿忘我新歌试唱卡片</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="card-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="card-title">勿忘我试唱</div>
+                <div class="card-menu">
+                    <button class="add-btn">+</button>
+                </div>
+            </div>
+
+            <div class="card-content">
+                <div class="background-layer"></div>
+                
+                <div class="lyrics-display">
+                    <div class="lyrics-placeholder">点击右上角+添加音乐  </div>
+                </div>
+            </div>
+
+            <div class="card-footer">
+                <div class="audio-controls">
+                    <button class="play-pause-btn">▶️</button>
+                    <div class="progress-container">
+                        <input type="range" class="audio-progress" min="0" max="100" value="0">
+                        <div class="time-display">
+                            <span class="current-time">0:00</span> / 
+                            <span class="total-time">0:00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dropdown-menu">
+            <button class="bg-image-btn">添加背景</button>
+            <button class="audio-btn">添加音频</button>
+            <button class="lyrics-btn">添加歌词</button>
+        </div>
+
+        <div class="lyrics-modal">
+            <div class="lyrics-modal-content">
+                <textarea id="lyrics-input" placeholder="请输入歌词，每行一句"></textarea>
+                <div class="lyrics-modal-actions">
+                    <button id="cancel-lyrics">取消</button>
+                    <button id="submit-lyrics">确认</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="song-audio"></audio>
+    <script src="script.js"></script>
+</body>
+</html>

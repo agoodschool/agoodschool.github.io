@@ -21,6 +21,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentTimeSpan = document.querySelector('.current-time');
     const totalTimeSpan = document.querySelector('.total-time');
 
+    // 录屏相关变量
+    const recordBtn = document.querySelector('.record-btn');
+    let mediaRecorder;
+    let recordedChunks = [];
+    let isRecording = false;
+    let recordedVideos = []; // 存储录制的视频
+    
+    // 添加回放容器
+    const playbackContainer = document.createElement('div');
+    playbackContainer.className = 'playback-container';
+    playbackContainer.innerHTML = `
+        <div class="playback-header">
+            <span>录制回放</span>
+            <button class="close-playback">×</button>
+        </div>
+        <div class="playback-content">
+            <video id="playback-video" controls></video>
+        </div>
+    `;
+    document.body.appendChild(playbackContainer);
+
     // 切换下拉菜单
     addBtn.addEventListener('click', () => {
         dropdownMenu.classList.toggle('show');
@@ -145,5 +166,122 @@ document.addEventListener('DOMContentLoaded', () => {
     cancelLyricsBtn.addEventListener('click', () => {
         lyricsModal.style.display = 'none';
         lyricsInput.value = '';
+    });
+
+    // 录屏功能
+    recordBtn.addEventListener('click', async () => {
+        const card = document.querySelector('.card');
+        
+        if (!isRecording) {
+            try {
+                // 获取屏幕流和系统音频
+                const screenStream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        cursor: 'never',
+                        displaySurface: 'monitor'
+                    },
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100,
+                        suppressLocalAudioPlayback: false
+                    }
+                });
+
+                // 获取麦克风音频流
+                const micStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        sampleRate: 44100
+                    }
+                });
+
+                // 合并音频轨道
+                const audioContext = new AudioContext();
+                const destination = audioContext.createMediaStreamDestination();
+                
+                // 添加系统音频
+                if (screenStream.getAudioTracks().length > 0) {
+                    const systemSource = audioContext.createMediaStreamSource(screenStream);
+                    systemSource.connect(destination);
+                }
+                
+                // 添加麦克风音频
+                const micSource = audioContext.createMediaStreamSource(micStream);
+                micSource.connect(destination);
+
+                const tracks = [
+                    ...screenStream.getVideoTracks(),
+                    ...destination.stream.getAudioTracks()
+                ];
+                const combinedStream = new MediaStream(tracks);
+
+                mediaRecorder = new MediaRecorder(combinedStream, {
+                    mimeType: 'video/webm'
+                });
+                
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                };
+                
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, {
+                        type: 'video/webm'
+                    });
+                    recordedChunks = [];
+                    
+                    // 保存到本地存储
+                    const videoUrl = URL.createObjectURL(blob);
+                    recordedVideos.push({
+                        url: videoUrl,
+                        timestamp: new Date().toLocaleString()
+                    });
+                    
+                    // 显示回放界面
+                    const video = document.getElementById('playback-video');
+                    video.src = videoUrl;
+                    playbackContainer.style.display = 'block';
+                    
+                    // 清理
+                    tracks.forEach(track => track.stop());
+                    audioContext.close();
+                };
+                
+                mediaRecorder.start();
+                isRecording = true;
+                recordBtn.textContent = '';
+                recordBtn.classList.add('recording');
+                
+                screenStream.getVideoTracks()[0].onended = () => {
+                    if (isRecording) {
+                        mediaRecorder.stop();
+                        isRecording = false;
+                        recordBtn.textContent = '录';
+                        recordBtn.classList.remove('recording');
+                    }
+                };
+                
+            } catch (err) {
+                console.error("Error: " + err);
+                isRecording = false;
+                recordBtn.textContent = '录';
+                recordBtn.classList.remove('recording');
+            }
+        } else {
+            mediaRecorder.stop();
+            isRecording = false;
+            recordBtn.textContent = '录';
+            recordBtn.classList.remove('recording');
+        }
+        
+        dropdownMenu.classList.remove('show');
+    });
+
+    // 关闭回放界面
+    document.querySelector('.close-playback').addEventListener('click', () => {
+        playbackContainer.style.display = 'none';
     });
 }); 

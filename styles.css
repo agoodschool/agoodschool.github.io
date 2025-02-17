@@ -54,7 +54,7 @@ body {
 
 .card-title {
     position: relative;
-    font-size: 0; /* 隐藏原始文字 */
+    font-size: 18px; /* 基准字号 */
     display: inline-block;
     padding: 5px 10px;
     background: rgba(255,255,255,0.2);
@@ -63,7 +63,7 @@ body {
 }
 
 .card-title span {
-    font-size: 18px;
+    font-size: 0.5em; /* 使用相对单位，是基准字号的一半 */
     display: inline-block;
     margin: 0 2px;
     transition: all 0.3s ease;
@@ -119,7 +119,7 @@ body {
 .lyrics-display {
     z-index: 2;
     text-align: center;
-    width: 80%;
+    width: 90%; /* 增加宽度利用更多空间 */
     color: var(--primary-color);
     max-height: 300px;
     overflow: hidden;
@@ -135,14 +135,21 @@ body {
     transition: all 0.3s ease;
     cursor: pointer;
     opacity: 0.7;
+    white-space: nowrap; /* 防止换行 */
+    overflow: hidden; /* 隐藏溢出部分 */
+    text-overflow: ellipsis; /* 溢出显示省略号 */
+    font-size: calc(12px + (100vw - 320px) * 0.01); /* 响应式字体大小 */
+    max-font-size: 18px; /* 最大字体大小 */
 }
 
 .lyrics-display .lyric-line:hover {
     opacity: 0.9;
 }
 
+/* 当歌词行被激活时保持自适应 */
 .lyrics-display .lyric-line.active {
-    font-size: 1.5em;
+    font-size: calc((12px + (100vw - 320px) * 0.01) * 1.5); /* 放大1.5倍但保持自适应 */
+    max-font-size: 27px; /* 最大字体大小的1.5倍 */
     color: var(--primary-color);
     opacity: 1;
     font-weight: bold;
@@ -315,6 +322,13 @@ body {
     :root {
         --card-width: 50vw;
         --card-height: 90vw;
+    }
+    .lyrics-display .lyric-line {
+        font-size: 16px;
+    }
+    
+    .lyrics-display .lyric-line.active {
+        font-size: 24px;
     }
 }
 

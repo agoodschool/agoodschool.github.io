@@ -139,7 +139,7 @@ body {
     font-size: calc(12px + (100vw - 320px) * 0.01);
     max-font-size: 18px;
     color: white;
-    background-color: rgba(26, 35, 126, 0.5); /* 深蓝色背景，50%透明度 */
+    background-color: rgba(26, 35, 126, 0.9); /* 深蓝色背景，90%透明度 */
     padding: 8px 15px;
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -147,13 +147,13 @@ body {
 }
 
 .lyrics-display .lyric-line:hover {
-    background-color: rgba(26, 35, 126, 0.6); /* 悬停时稍微不透明 */
+    background-color: rgba(26, 35, 126, 0.95); /* 悬停时更不透明 */
 }
 
 .lyrics-display .lyric-line.active {
     font-size: calc((12px + (100vw - 320px) * 0.01) * 1.5);
     max-font-size: 27px;
-    background-color: rgba(0, 77, 64, 0.5); /* 深绿色背景，50%透明度 */
+    background-color: rgba(0, 77, 64, 0.9); /* 深绿色背景，90%透明度 */
     color: white;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
